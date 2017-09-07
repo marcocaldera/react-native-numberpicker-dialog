@@ -19,12 +19,12 @@ import java.util.List;
 
 class RNNumberPickerDialogModule extends ReactContextBaseJavaModule {
     private Context context;
-
+    
     public RNNumberPickerDialogModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.context = reactContext;
     }
-
+    
     /**
      * @return the name of this module. This will be the name used to {@code require()} this module
      * from javascript.
@@ -33,7 +33,7 @@ class RNNumberPickerDialogModule extends ReactContextBaseJavaModule {
     public String getName() {
         return "RNNumberPickerDialog";
     }
-
+    
     @ReactMethod
     public void show(final ReadableMap options, final Callback onSuccess, final Callback onFailure) {
         ReadableArray values = options.getArray("values");
@@ -41,34 +41,39 @@ class RNNumberPickerDialogModule extends ReactContextBaseJavaModule {
             onFailure.invoke("values array must not be empty");
             return;
         }
-
+        
         final NumberPicker picker = new NumberPicker(getCurrentActivity());
         picker.setMinValue(0);
         picker.setMaxValue(values.size() -1);
-
+        
         String[] displayedValues = new String[values.size()];
         for(int i = 0;i<values.size();++i) {
-            displayedValues[i] = values.getString(i);
+            //displayedValues[i] = values.getString(i);
+            displayedValues[i] = String.valueOf(i);
         }
         picker.setDisplayedValues(displayedValues);
         picker.setWrapSelectorWheel(false);
         picker.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
-
+        
+        if (options.hasKey("selectedValueIndex")) {
+            //setValue -> set the current value for the number picker
+            picker.setValue(options.getInt("selectedValueIndex"));
+        }
+        
         new AlertDialog.Builder(getCurrentActivity())
-            .setTitle(options.getString("title"))
-            .setMessage(options.getString("message"))
-            .setView(picker)
-            .setPositiveButton(options.getString("positiveButtonLabel"), new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                    onSuccess.invoke(picker.getValue());
-                }
-            })
-            .setNegativeButton(options.getString("negativeButtonLabel"), new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-                    onSuccess.invoke(-1);
-                }
-            })
-            .create()
-            .show();
+        .setTitle(options.getString("title"))
+        .setView(picker)
+        .setPositiveButton(options.getString("positiveButtonLabel"), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                onSuccess.invoke(picker.getValue());
+            }
+        })
+        .setNegativeButton(options.getString("negativeButtonLabel"), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                onSuccess.invoke(-1);
+            }
+        })
+        .create()
+        .show();
     }
 }
